@@ -1,10 +1,18 @@
 # Optional WebOS v86 runtime
 
-Run `python3 webos/prepare-runtime.py output-directory` with a new output
-directory. It fetches v86 0.5.472 from npm, verifies the archive and runtime
-hashes, and copies the two matching firmware files from `bios/`. Keep the
-generated directory outside Git. This source release includes the original
-firmware and license notices.
+Prepare an upstream v86 checkout containing
+`cc37f35c43bf14865d74ad76879ecf9410f69eb1` from the official
+[copy/v86 repository](https://github.com/copy/v86). From the WebOS integration
+checkout, run:
+
+```sh
+python3 webos/prepare-runtime.py output-directory --upstream-source /path/to/upstream/v86
+```
+
+Use a new output directory. The script verifies the v86 0.5.472 npm archive and
+restores its JavaScript and WASM along with the two firmware files from that
+exact upstream revision. The generated directory stays outside Git. The
+source checkout includes the firmware license notice.
 
 The optional Linux guest requires a separate kernel and initramfs. See the
 WebOS Linux component for the guest image source and the historical image pin.

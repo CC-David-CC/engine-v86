@@ -3,11 +3,13 @@
 import argparse
 import hashlib
 import io
+import subprocess
 from pathlib import Path
 import tarfile
 from urllib.request import urlopen
 
 
+FIRMWARE_REV = 'cc37f35c43bf14865d74ad76879ecf9410f69eb1'
 PACKAGE = 'https://registry.npmjs.org/v86/-/v86-0.5.472.tgz'
 PACKAGE_SHA256 = '4698fae3f518ad0a6f78d31e8f6f8802ff272a86f07b603b95f6c9fdd428e4fc'
 MAX_PACKAGE_BYTES = 12 * 1024 * 1024
@@ -30,6 +32,8 @@ def verify(name, data, expected):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output', type=Path, help='New runtime output directory')
+    parser.add_argument('--upstream-source', required=True, type=Path,
+                        help='Git checkout containing the pinned upstream firmware revision')
     args = parser.parse_args()
     if args.output.exists() or args.output.is_symlink():
         parser.error('choose an output directory that does not exist')
@@ -51,9 +55,10 @@ def main():
             with package.extractfile(member) as source:
                 files[name] = verify(name, source.read(), expected)
 
-    root = Path(__file__).resolve().parents[1]
+    git = ['git', '-C', args.upstream_source.resolve(strict=True)]
     for name, expected in FIRMWARE_FILES.items():
-        files[name] = verify(name, (root / 'bios' / name).read_bytes(), expected)
+        data = subprocess.check_output([*git, 'show', f'{FIRMWARE_REV}:bios/{name}'])
+        files[name] = verify(name, data, expected)
 
     args.output.mkdir()
     for name, data in files.items():
