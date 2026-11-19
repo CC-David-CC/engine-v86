@@ -1,15 +1,14 @@
-# Checked-in browser Linux runtime
+# Optional WebOS v86 runtime
 
-These are the exact v86 runtime and firmware files used by the current
-Simplified preview. They are intentionally checked in so another machine can
-run the guest without this workstation's private download cache. The guest
-image itself is the single image named in `../../assets/terminal/v2/image.json`.
-Older images and intermediate builds are not part of this runtime.
+Run `python3 webos/prepare-runtime.py output-directory` with a new output
+directory. It fetches v86 0.5.472 from npm, verifies the archive and runtime
+hashes, and copies the two matching firmware files from `bios/`. Keep the
+generated directory outside Git. This source release includes the original
+firmware and license notices.
 
-`scripts/serve-connected.py` uses these files when a complete locally rebuilt
-`active-system/.build/v86` is absent. A complete local rebuild takes precedence
-for development. The checked-in `image.json` selects the guest image separately.
-Linux home remains temporary and separate from the account-backed My files.
+The optional Linux guest requires a separate kernel and initramfs. See the
+WebOS Linux component for the guest image source and the historical image pin.
+The normal WebOS viewer can be built without the Linux guest.
 
 The emulator files come from v86 0.5.472, with source revision
 `cc37f35c43bf14865d74ad76879ecf9410f69eb1`; BIOS files were taken from that
