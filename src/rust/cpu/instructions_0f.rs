@@ -4035,6 +4035,44 @@ pub unsafe fn instr_0FCE() { bswap(ESI); }
 pub unsafe fn instr_0FCF() { bswap(EDI); }
 #[no_mangle]
 pub unsafe fn instr_0FD0() { unimplemented_sse(); }
+
+#[no_mangle]
+pub unsafe fn instr_660FD0(source: reg128, r: i32) {
+    let destination = read_xmm128s(r);
+    write_xmm_reg128(
+        r,
+        reg128 {
+            f64: [
+                destination.f64[0] - source.f64[0],
+                destination.f64[1] + source.f64[1],
+            ],
+        },
+    );
+}
+pub unsafe fn instr_660FD0_reg(r1: i32, r2: i32) { instr_660FD0(read_xmm128s(r1), r2); }
+pub unsafe fn instr_660FD0_mem(addr: i32, r: i32) {
+    instr_660FD0(return_on_pagefault!(safe_read128s(addr)), r);
+}
+
+#[no_mangle]
+pub unsafe fn instr_F20FD0(source: reg128, r: i32) {
+    let destination = read_xmm128s(r);
+    write_xmm_reg128(
+        r,
+        reg128 {
+            f32: [
+                destination.f32[0] - source.f32[0],
+                destination.f32[1] + source.f32[1],
+                destination.f32[2] - source.f32[2],
+                destination.f32[3] + source.f32[3],
+            ],
+        },
+    );
+}
+pub unsafe fn instr_F20FD0_reg(r1: i32, r2: i32) { instr_F20FD0(read_xmm128s(r1), r2); }
+pub unsafe fn instr_F20FD0_mem(addr: i32, r: i32) {
+    instr_F20FD0(return_on_pagefault!(safe_read128s(addr)), r);
+}
 #[no_mangle]
 pub unsafe fn instr_0FD1(source: u64, r: i32) {
     // psrlw mm, mm/m64
