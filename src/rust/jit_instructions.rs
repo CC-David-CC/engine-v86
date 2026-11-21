@@ -7611,6 +7611,9 @@ pub fn instr_660FEF_reg_jit(ctx: &mut JitContext, r1: u32, r2: u32) {
     sse_read128_xmm_xmm(ctx, "instr_660FEF", r1, r2);
 }
 
+pub fn instr_F20FF0_reg_jit(ctx: &mut JitContext, _r1: u32, _r2: u32) {
+    codegen::gen_trigger_ud(ctx);
+}
 pub fn instr_F20FF0_mem_jit(ctx: &mut JitContext, modrm_byte: ModrmByte, r: u32) {
     instr_F30F6F_mem_jit(ctx, modrm_byte, r);
 }
