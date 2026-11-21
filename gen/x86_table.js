@@ -781,7 +781,7 @@ const encodings = [
     { sse: 1, opcode: 0x0FEF, e: 1, custom: 1 },
     { sse: 1, opcode: 0x660FEF, e: 1, custom: 1 },
 
-    { sse: 1, opcode: 0x0FF0, skip: 1, block_boundary: 1 }, // sse3
+    { sse: 1, opcode: 0xF20FF0, reg_ud: 1, e: 1, custom: 1 }, // lddqu xmm, m128
 
     { sse: 1, opcode: 0x0FF1, e: 1, custom: 1 },
     { sse: 1, opcode: 0x660FF1, e: 1, custom: 1 },

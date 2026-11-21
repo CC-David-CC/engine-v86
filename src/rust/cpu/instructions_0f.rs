@@ -4891,8 +4891,9 @@ pub unsafe fn instr_660FEF_reg(r1: i32, r2: i32) { instr_660FEF(read_xmm128s(r1)
 pub unsafe fn instr_660FEF_mem(addr: i32, r: i32) {
     instr_660FEF(return_on_pagefault!(safe_read128s(addr)), r);
 }
-#[no_mangle]
-pub unsafe fn instr_0FF0() { unimplemented_sse(); }
+// LDDQU has the same architectural load result as unaligned MOVDQU.
+pub unsafe fn instr_F20FF0_mem(addr: i32, r: i32) { instr_F30F6F_mem(addr, r); }
+pub unsafe fn instr_F20FF0_reg(_r1: i32, _r2: i32) { trigger_ud(); }
 #[no_mangle]
 pub unsafe fn instr_0FF1(source: u64, r: i32) {
     // psllw mm, mm/m64
