@@ -5,9 +5,56 @@ import { dbg_log } from "./log.js";
 // For Types Only
 import { CPU } from "./cpu.js";
 import { BusConnector } from "./bus.js";
-import { ByteQueue } from "./lib.js";
 
 const PS2_LOG_VERBOSE = false;
+
+// The keyboard and auxiliary ports share the 8042's output register. Keep the
+// enqueue order across their FIFOs so the guest sees a click packet before
+// the first keystroke a user types into the newly selected control.
+class PortQueue
+{
+    /** @param {function():number} nextSequence */
+    constructor(nextSequence)
+    {
+        this.nextSequence = nextSequence;
+        this.bytes = new Uint8Array(1024);
+        this.sequence = new Float64Array(this.bytes.length);
+        this.head = 0;
+        this.length = 0;
+    }
+
+    clear()
+    {
+        this.head = 0;
+        this.length = 0;
+    }
+
+    push(value)
+    {
+        if(this.length === this.bytes.length)
+        {
+            this.shift();
+        }
+        const tail = (this.head + this.length) % this.bytes.length;
+        this.bytes[tail] = value;
+        this.sequence[tail] = this.nextSequence();
+        this.length++;
+    }
+
+    shift()
+    {
+        if(!this.length) return -1;
+        const byte = this.bytes[this.head];
+        this.head = (this.head + 1) % this.bytes.length;
+        this.length--;
+        return byte;
+    }
+
+    first_sequence()
+    {
+        return this.length ? this.sequence[this.head] : Infinity;
+    }
+}
 
 /**
  * @constructor
@@ -101,10 +148,9 @@ PS2.prototype.reset = function()
     /** @type {boolean} */
     this.next_read_resolution = false;
 
-    /**
-     * @type {ByteQueue}
-     */
-    this.kbd_buffer = new ByteQueue(1024);
+    let sequence = 0;
+    const nextSequence = () => sequence++;
+    this.kbd_buffer = new PortQueue(nextSequence);
 
     this.last_port60_byte = 0;
 
@@ -132,10 +178,7 @@ PS2.prototype.reset = function()
     /** @type {number} */
     this.last_mouse_packet = -1;
 
-    /**
-     * @type {ByteQueue}
-     */
-    this.mouse_buffer = new ByteQueue(1024);
+    this.mouse_buffer = new PortQueue(nextSequence);
 
     /**
      * @type {boolean}
@@ -243,8 +286,7 @@ PS2.prototype.raise_irq = function()
         return;
     }
 
-    // Kbd has priority over aux
-    if(this.kbd_buffer.length)
+    if(this.kbd_buffer.first_sequence() < this.mouse_buffer.first_sequence())
     {
         this.kbd_irq();
     }
